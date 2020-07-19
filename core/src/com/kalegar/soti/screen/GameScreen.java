@@ -43,7 +43,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-
+        engine.getSystem(RenderSystem.class).resize(width,height);
     }
 
     @Override
@@ -63,6 +63,6 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
-
+        batch.dispose();
     }
 }
