@@ -1,33 +1,35 @@
 package com.kalegar.soti;
 
 import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.kalegar.soti.screen.GameScreen;
 
-public class ShardsOfTheInfinite extends ApplicationAdapter {
-	SpriteBatch batch;
-	Texture img;
+public class ShardsOfTheInfinite extends Game {
+
+	private boolean assetsLoaded = false;
 	
 	@Override
 	public void create () {
-		batch = new SpriteBatch();
-		img = new Texture("badlogic.jpg");
+		AssetLoader.getInstance().loadSpriteAtlas();
 	}
 
 	@Override
 	public void render () {
-		Gdx.gl.glClearColor(1, 0, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		batch.begin();
-		batch.draw(img, 0, 0);
-		batch.end();
+		super.render();
+
+		if (!assetsLoaded && AssetLoader.getInstance().update()) {
+			assetsLoaded = true;
+			this.setScreen(new GameScreen(this));
+		}
 	}
 	
 	@Override
 	public void dispose () {
-		batch.dispose();
-		img.dispose();
+		this.getScreen().dispose();
+		AssetLoader.getInstance().dispose();
 	}
 }
