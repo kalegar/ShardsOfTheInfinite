@@ -6,7 +6,7 @@ import com.badlogic.gdx.utils.Array;
 
 public class AnimationAdvanced<T> extends Animation<T> {
 
-    private Vector2 origin;
+    private Vector2 origin = new Vector2();
 
     public AnimationAdvanced(float frameDuration, Array<? extends T> keyFrames) {
         super(frameDuration, keyFrames);

@@ -10,14 +10,15 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.kalegar.soti.entity.component.ComponentMappers;
 import com.kalegar.soti.entity.component.RenderComponent;
 import com.kalegar.soti.entity.component.TransformComponent;
 import com.kalegar.soti.gfx.AnimationAdvanced;
+import com.kalegar.soti.util.Constants;
 
 import java.util.Comparator;
 
@@ -40,6 +41,9 @@ public class RenderSystem extends SortedIteratingSystem {
         camera = new OrthographicCamera();
         camera.setToOrtho(false,viewWidth,viewHeight);
 
+        camera.position.x = viewWidth/2;
+        camera.position.y = viewHeight/2;
+
         viewport = new ExtendViewport(viewWidth,viewHeight,camera);
     }
 
@@ -58,6 +62,7 @@ public class RenderSystem extends SortedIteratingSystem {
         batch.begin();
 
         for (Entity entity : renderQueue) {
+
             RenderComponent rc = ComponentMappers.render.get(entity);
             TransformComponent tc = ComponentMappers.transform.get(entity);
 
@@ -69,11 +74,13 @@ public class RenderSystem extends SortedIteratingSystem {
                 rc.stateTime += Gdx.graphics.getDeltaTime();
             }
             TextureRegion currentFrame = animation.getKeyFrame(rc.stateTime, true);
+            Vector3 position = tc.position.cpy();
+            position.x *= Constants.PPM;
+            position.y *= Constants.PPM;
             Vector2 origin = animation.getOrigin();
-
             batch.draw(currentFrame,
-                    tc.position.x - origin.x,
-                    tc.position.y - origin.y,
+                    position.x - origin.x,
+                    position.y - origin.y,
                     origin.x,
                     origin.y,
                     currentFrame.getRegionWidth(),
@@ -97,6 +104,10 @@ public class RenderSystem extends SortedIteratingSystem {
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
         renderQueue.add(entity);
+    }
+
+    public OrthographicCamera getCamera() {
+        return camera;
     }
 
     private static class ZComparator implements Comparator<Entity> {
