@@ -78,6 +78,7 @@ public class RenderSystem extends SortedIteratingSystem {
             position.x *= Constants.PPM;
             position.y *= Constants.PPM;
             Vector2 origin = animation.getOrigin();
+            batch.setColor(rc.tint);
             batch.draw(currentFrame,
                     position.x - origin.x,
                     position.y - origin.y,

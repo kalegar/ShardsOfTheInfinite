@@ -8,9 +8,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.physics.bullet.Bullet;
 import com.kalegar.soti.ShardsOfTheInfinite;
 import com.kalegar.soti.entity.EntityFactory;
+import com.kalegar.soti.entity.system.ControlSystem;
 import com.kalegar.soti.entity.system.PhysicsSystem;
 import com.kalegar.soti.entity.system.RenderSystem;
 
@@ -27,19 +27,23 @@ public class GameScreen implements Screen {
     public GameScreen(final ShardsOfTheInfinite game) {
         this.game = game;
 
-        //Init Bullet
-        Bullet.init();
-
         batch = new SpriteBatch();
 
         world = new World(new Vector2(), true);
 
+        RenderSystem renderSystem = new RenderSystem(batch,960,540);
+        ControlSystem controlSystem = new ControlSystem(renderSystem.getCamera(),world);
+
         engine = new PooledEngine();
+        engine.addSystem(controlSystem);
         engine.addSystem(new PhysicsSystem(world));
-        engine.addSystem(new RenderSystem(batch,960,540));
+        engine.addSystem(renderSystem);
 
         entityFactory = new EntityFactory(engine, world);
 
+        for (int i = 0; i < 8; i++) {
+            entityFactory.getFighter(new Vector2(32*i+32, 32*i+32));
+        }
 
     }
 
@@ -54,13 +58,6 @@ public class GameScreen implements Screen {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit();
             return;
-        }
-
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            Vector3 pos = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
-            Vector3 mPos = engine.getSystem(RenderSystem.class).getCamera().unproject(pos);
-            entityFactory.getFighter(new Vector2(mPos.x,mPos.y));
-            Gdx.app.log("entity","Created fighter at " + mPos.x + ", " + mPos.y);
         }
 
         engine.update(delta);
