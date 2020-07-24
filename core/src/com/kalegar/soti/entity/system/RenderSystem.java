@@ -5,6 +5,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.SortedIteratingSystem;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -78,7 +79,11 @@ public class RenderSystem extends SortedIteratingSystem {
             position.x *= Constants.PPM;
             position.y *= Constants.PPM;
             Vector2 origin = animation.getOrigin();
-            batch.setColor(rc.tint);
+            if (ComponentMappers.select.has(entity)) {
+                batch.setColor(Color.GREEN);
+            }else{
+                batch.setColor(Color.WHITE);
+            }
             batch.draw(currentFrame,
                     position.x - origin.x,
                     position.y - origin.y,

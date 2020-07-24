@@ -9,7 +9,6 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.kalegar.soti.AssetLoader;
 import com.kalegar.soti.entity.component.PhysicsComponent;
 import com.kalegar.soti.entity.component.RenderComponent;
-import com.kalegar.soti.entity.component.SelectedComponent;
 import com.kalegar.soti.entity.component.SteeringComponent;
 import com.kalegar.soti.entity.component.TeamComponent;
 import com.kalegar.soti.entity.component.TransformComponent;
@@ -37,7 +36,6 @@ public class EntityFactory {
         PhysicsComponent physics = engine.createComponent(PhysicsComponent.class);
         SteeringComponent steering = engine.createComponent(SteeringComponent.class);
         RenderComponent render = engine.createComponent(RenderComponent.class);
-        SelectedComponent selectable = engine.createComponent(SelectedComponent.class);
         TeamComponent team = engine.createComponent(TeamComponent.class);
 
         Vector2 pos = position.cpy().scl(1/ Constants.PPM);
@@ -55,7 +53,6 @@ public class EntityFactory {
         entity.add(physics);
         entity.add(steering);
         entity.add(render);
-        entity.add(selectable);
         entity.add(team);
 
         engine.addEntity(entity);

@@ -6,7 +6,6 @@ import com.badlogic.ashley.core.PooledEngine;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -14,7 +13,6 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.QueryCallback;
 import com.badlogic.gdx.physics.box2d.World;
 import com.kalegar.soti.entity.component.ComponentMappers;
-import com.kalegar.soti.entity.component.RenderComponent;
 import com.kalegar.soti.entity.component.SelectedComponent;
 import com.kalegar.soti.entity.component.TeamComponent;
 import com.kalegar.soti.physics.PhysicsFixtureUserData;
@@ -30,7 +28,7 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
     private boolean selecting = false;
 
     public ControlSystem(OrthographicCamera camera, World world) {
-        super(Family.all(SelectedComponent.class, TeamComponent.class, RenderComponent.class).get());
+        super(Family.all(SelectedComponent.class, TeamComponent.class).get());
         this.camera = camera;
         this.world = world;
     }
@@ -80,8 +78,6 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             if (!Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) {
                 entity.remove(SelectedComponent.class);
-                RenderComponent render = ComponentMappers.render.get(entity);
-                render.tint.set(Color.WHITE);
             }
         }
     }
@@ -95,13 +91,9 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
                 //Select this entity
                 SelectedComponent select = ((PooledEngine) getEngine()).createComponent(SelectedComponent.class);
                 entity.add(select);
-                RenderComponent render = ComponentMappers.render.get(entity);
-                render.tint.set(Color.GREEN);
             }else{
                 //Deselect this entity
                 entity.remove(SelectedComponent.class);
-                RenderComponent render = ComponentMappers.render.get(entity);
-                render.tint.set(Color.WHITE);
             }
         }
         return true;
