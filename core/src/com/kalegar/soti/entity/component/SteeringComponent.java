@@ -3,32 +3,33 @@ package com.kalegar.soti.entity.component;
 import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
-import com.badlogic.gdx.ai.steer.SteeringBehavior;
 import com.badlogic.gdx.ai.utils.Location;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.utils.Pool;
 import com.kalegar.soti.entity.steering.SteeringLocation;
+import com.kalegar.soti.util.Steerer;
 import com.kalegar.soti.util.Utils;
 
 public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Poolable{
 
     public Body body;
 
-    public float maxLinearSpeed = 2f;
-    public float maxLinearAcceleration = 5f;
-    public float maxAngularSpeed = 50f;
-    public float maxAngularAcceleration = 5f;
+    public float maxLinearSpeed = 5f;
+    public float maxLinearAcceleration = 10f;
+    public float maxAngularSpeed = 5f;
+    public float maxAngularAcceleration = 3f;
     public float zeroThreshold = 0.1f;
-    public SteeringBehavior<Vector2> steeringBehavior;
+    public Steerer steerer;
     private static final SteeringAcceleration<Vector2> steeringOutput = new SteeringAcceleration<>(new Vector2());
-    public float boundingRadius = 1f;
+    public float boundingRadius = 0.375f;
     public boolean tagged = false;
-    public boolean independentFacing = true;
+    public boolean independentFacing = false;
+    public boolean wasSteering;
 
     @Override
     public void reset() {
-
+        wasSteering = false;
     }
 
     public boolean isIndependentFacing() {
@@ -40,9 +41,16 @@ public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Po
     }
 
     public void update(float delta) {
-        if (steeringBehavior != null) {
-            steeringBehavior.calculateSteering(steeringOutput);
-            applySteering(steeringOutput, delta);
+
+        if (steerer != null) {
+            if (steerer.calculateSteering(steeringOutput)) {
+                if (!wasSteering) {
+                    startSteering();
+                }
+                applySteering(steeringOutput, delta);
+            }else{
+                stopSteering(true);
+            }
         }
     }
 
@@ -62,8 +70,8 @@ public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Po
         } else {
             Vector2 linVel = getLinearVelocity();
             if (!linVel.isZero(getZeroLinearSpeedThreshold())) {
-                float newOrientation = vectorToAngle(linVel);
-                body.setAngularVelocity((newOrientation - getAngularVelocity()) * deltaTime);
+                float newOrientation = Utils.lerp(body.getAngle(),vectorToAngle(linVel),0.1f);
+                //body.setAngularVelocity((newOrientation - getAngularVelocity()) * deltaTime * maxAngularAcceleration);
                 body.setTransform(body.getPosition(),newOrientation);
             }
         }
@@ -79,6 +87,33 @@ public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Po
             if (body.getAngularVelocity() > maxAngularVelocity) {
                 body.setAngularVelocity(maxAngularVelocity);
             }
+        }
+    }
+
+    protected void startSteering() {
+        // Disable linear and angular damping as the body
+        // is now being controlled by the steerer.
+        wasSteering = true;
+        body.setLinearDamping(0f);
+        body.setAngularDamping(0f);
+        if (steerer != null) {
+            steerer.startSteering();
+        }
+    }
+
+    protected void stopSteering(boolean clearLinearVelocity) {
+        wasSteering = false;
+        body.setAngularVelocity(0);
+        body.setLinearDamping(1f);
+        body.setAngularDamping(0.5f);
+        if (steerer != null) {
+            clearLinearVelocity = steerer.stopSteering();
+        }
+
+        steerer = null;
+        steeringOutput.setZero();
+        if (clearLinearVelocity) {
+            body.setLinearVelocity(Vector2.Zero);
         }
     }
 

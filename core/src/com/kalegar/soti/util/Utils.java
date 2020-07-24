@@ -78,4 +78,8 @@ public class Utils {
         return outVector;
     }
 
+    public static float lerp(float lower, float upper, float fraction) {
+        return (lower + fraction * (upper - lower));
+    }
+
 }

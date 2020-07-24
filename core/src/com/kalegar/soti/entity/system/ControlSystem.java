@@ -6,7 +6,6 @@ import com.badlogic.ashley.core.PooledEngine;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.ai.steer.behaviors.Arrive;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -19,6 +18,7 @@ import com.kalegar.soti.entity.component.SteeringComponent;
 import com.kalegar.soti.entity.component.TeamComponent;
 import com.kalegar.soti.entity.steering.SteeringLocation;
 import com.kalegar.soti.physics.PhysicsFixtureUserData;
+import com.kalegar.soti.steerers.ArriveSteerer;
 import com.kalegar.soti.util.Constants;
 
 public class ControlSystem extends IteratingSystem implements QueryCallback {
@@ -83,13 +83,7 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
         if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
             SteeringComponent steering = ComponentMappers.steering.get(entity);
 
-            Arrive<Vector2> arrive = new Arrive<>(steering);
-            arrive.setTarget(new SteeringLocation(mousePosition.cpy().scl(1/Constants.PPM)));
-            arrive.setTimeToTarget(5);
-            arrive.setArrivalTolerance(0.1f);
-            arrive.setDecelerationRadius(1f);
-
-            steering.steeringBehavior = arrive;
+            steering.steerer = new ArriveSteerer(steering,new SteeringLocation(mousePosition.cpy().scl(1/Constants.PPM)));
 
         }
     }

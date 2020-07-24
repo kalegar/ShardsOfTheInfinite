@@ -4,9 +4,9 @@ import com.badlogic.ashley.core.PooledEngine;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.ai.GdxAI;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
 import com.kalegar.soti.ShardsOfTheInfinite;
 import com.kalegar.soti.entity.EntityFactory;
@@ -21,7 +21,7 @@ public class GameScreen implements Screen {
 
     private PooledEngine engine;
     private SpriteBatch batch;
-    private World world;
+    private static World world;
 
     private EntityFactory entityFactory;
 
@@ -61,7 +61,7 @@ public class GameScreen implements Screen {
             Gdx.app.exit();
             return;
         }
-
+        GdxAI.getTimepiece().update(delta);
         engine.update(delta);
     }
 
@@ -89,5 +89,9 @@ public class GameScreen implements Screen {
     public void dispose() {
         batch.dispose();
         world.dispose();
+    }
+
+    public static World getWorld() {
+        return world;
     }
 }
