@@ -13,6 +13,7 @@ import com.kalegar.soti.entity.EntityFactory;
 import com.kalegar.soti.entity.system.ControlSystem;
 import com.kalegar.soti.entity.system.PhysicsSystem;
 import com.kalegar.soti.entity.system.RenderSystem;
+import com.kalegar.soti.entity.system.SteeringSystem;
 
 public class GameScreen implements Screen {
 
@@ -36,6 +37,7 @@ public class GameScreen implements Screen {
 
         engine = new PooledEngine();
         engine.addSystem(controlSystem);
+        engine.addSystem(new SteeringSystem());
         engine.addSystem(new PhysicsSystem(world));
         engine.addSystem(renderSystem);
 

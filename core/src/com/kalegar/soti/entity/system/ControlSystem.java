@@ -6,6 +6,7 @@ import com.badlogic.ashley.core.PooledEngine;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.ai.steer.behaviors.Arrive;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -14,7 +15,9 @@ import com.badlogic.gdx.physics.box2d.QueryCallback;
 import com.badlogic.gdx.physics.box2d.World;
 import com.kalegar.soti.entity.component.ComponentMappers;
 import com.kalegar.soti.entity.component.SelectedComponent;
+import com.kalegar.soti.entity.component.SteeringComponent;
 import com.kalegar.soti.entity.component.TeamComponent;
+import com.kalegar.soti.entity.steering.SteeringLocation;
 import com.kalegar.soti.physics.PhysicsFixtureUserData;
 import com.kalegar.soti.util.Constants;
 
@@ -25,10 +28,11 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
     private Vector2 selectPosition = new Vector2();
     private Vector2 lower = new Vector2();
     private Vector2 upper = new Vector2();
+    private Vector2 mousePosition = new Vector2();
     private boolean selecting = false;
 
     public ControlSystem(OrthographicCamera camera, World world) {
-        super(Family.all(SelectedComponent.class, TeamComponent.class).get());
+        super(Family.all(SelectedComponent.class, TeamComponent.class, SteeringComponent.class).get());
         this.camera = camera;
         this.world = world;
     }
@@ -36,22 +40,19 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
     @Override
     public void update(float deltaTime) {
         super.update(deltaTime);
+        Vector3 pos = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
+        Vector3 mPos = camera.unproject(pos);
+        mousePosition.set(mPos.x,mPos.y);
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             selecting = true;
-            Vector3 pos = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
-            Vector3 mPos = camera.unproject(pos);
-
-            selectPosition.set(mPos.x,mPos.y);
+            selectPosition.set(mousePosition);
         }
         if (!Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
             if (selecting) {
                 selecting = false;
 
-                Vector3 pos = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
-                Vector3 mPos = camera.unproject(pos);
-
-                lower.set(Math.min(selectPosition.x,mPos.x),Math.min(selectPosition.y,mPos.y));
-                upper.set(Math.max(selectPosition.x,mPos.x),Math.max(selectPosition.y,mPos.y));
+                lower.set(Math.min(selectPosition.x,mousePosition.x),Math.min(selectPosition.y,mousePosition.y));
+                upper.set(Math.max(selectPosition.x,mousePosition.x),Math.max(selectPosition.y,mousePosition.y));
 
                 if (lower.dst2(upper) < 1) {
                     lower.sub(0.5f,0.5f);
@@ -69,8 +70,6 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
                 );
             }
         }
-
-
     }
 
     @Override
@@ -78,7 +77,20 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             if (!Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) {
                 entity.remove(SelectedComponent.class);
+                return;
             }
+        }
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
+            SteeringComponent steering = ComponentMappers.steering.get(entity);
+
+            Arrive<Vector2> arrive = new Arrive<>(steering);
+            arrive.setTarget(new SteeringLocation(mousePosition.cpy().scl(1/Constants.PPM)));
+            arrive.setTimeToTarget(5);
+            arrive.setArrivalTolerance(0.1f);
+            arrive.setDecelerationRadius(1f);
+
+            steering.steeringBehavior = arrive;
+
         }
     }
 
