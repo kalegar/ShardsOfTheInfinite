@@ -10,6 +10,7 @@ public class DesktopLauncher {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		config.width = 960;
 		config.height = 540;
+		config.forceExit = false;
 		if (args.length > 0) {
 			for (String arg : args) {
 				if (arg.equalsIgnoreCase("-pack")) {

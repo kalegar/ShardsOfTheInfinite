@@ -28,6 +28,10 @@ public abstract class CollisionAvoidanceSteererBase extends Steerer {
         this.prioritySteering.add(collisionAvoidanceSB);
     }
 
+    public void setCollisionAvoidanceEnabled(boolean enabled) {
+        this.collisionAvoidanceSB.setEnabled(enabled);
+    }
+
     @Override
     public SteeringBehavior<Vector2> getSteeringBehavior() {
         return prioritySteering;

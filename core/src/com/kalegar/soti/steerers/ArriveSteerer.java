@@ -4,6 +4,7 @@ import com.badlogic.gdx.ai.GdxAI;
 import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.steer.behaviors.Arrive;
+import com.badlogic.gdx.ai.utils.Location;
 import com.badlogic.gdx.math.Vector2;
 import com.kalegar.soti.entity.steering.SteeringLocation;
 
@@ -17,7 +18,7 @@ public class ArriveSteerer extends CollisionAvoidanceSteererBase {
     private static final float DEADLOCK_TIME = 0.5f;
     private static final float MAX_NO_COLLISION_TIME = DEADLOCK_TIME + .5f;
 
-    public ArriveSteerer(final Steerable<Vector2> body, SteeringLocation target) {
+    public ArriveSteerer(final Steerable<Vector2> body, Location<Vector2> target) {
         super(body);
 
         this.arriveSB = new Arrive<>(body)
