@@ -12,7 +12,6 @@ import com.badlogic.gdx.physics.box2d.QueryCallback;
 import com.badlogic.gdx.physics.box2d.World;
 import com.kalegar.soti.entity.component.ComponentMappers;
 import com.kalegar.soti.entity.component.SteeringComponent;
-import com.kalegar.soti.util.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,5 +79,9 @@ public class AABBProximity<T extends Vector<T>> extends ProximityBase<T> impleme
             }
         }
         return true;
+    }
+
+    public float getRadius() {
+        return radius;
     }
 }

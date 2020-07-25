@@ -10,6 +10,8 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
@@ -32,6 +34,8 @@ public class RenderSystem extends SortedIteratingSystem {
 
     private Array<Entity> renderQueue;
 
+    private ShapeRenderer shapeRenderer;
+
     public RenderSystem(SpriteBatch batch, float viewWidth, float viewHeight) {
         super(Family.all(TransformComponent.class, RenderComponent.class).get(), new ZComparator());
 
@@ -46,6 +50,8 @@ public class RenderSystem extends SortedIteratingSystem {
         camera.position.y = viewHeight/2;
 
         viewport = new ExtendViewport(viewWidth,viewHeight,camera);
+
+        shapeRenderer = new ShapeRenderer();
     }
 
     @Override
@@ -101,6 +107,17 @@ public class RenderSystem extends SortedIteratingSystem {
 
         //Clear render queue
         renderQueue.clear();
+
+        //Draw selection rectangle
+        ControlSystem controlSystem = getEngine().getSystem(ControlSystem.class);
+
+        if (controlSystem.isSelecting()) {
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+            Rectangle rect = controlSystem.getSelectionRectangle();
+            shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
+            shapeRenderer.end();
+        }
+
     }
 
     public void resize(int width, int height) {

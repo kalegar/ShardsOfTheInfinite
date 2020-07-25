@@ -7,6 +7,7 @@ import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Fixture;
@@ -30,11 +31,14 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
     private Vector2 upper = new Vector2();
     private Vector2 mousePosition = new Vector2();
     private boolean selecting = false;
+    private Rectangle selectionRectangle;
 
     public ControlSystem(OrthographicCamera camera, World world) {
         super(Family.all(SelectedComponent.class, TeamComponent.class, SteeringComponent.class).get());
         this.camera = camera;
         this.world = world;
+
+        selectionRectangle = new Rectangle();
     }
 
     @Override
@@ -47,13 +51,13 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
             selecting = true;
             selectPosition.set(mousePosition);
         }
-        if (!Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-            if (selecting) {
+        if (selecting) {
+            lower.set(Math.min(selectPosition.x,mousePosition.x),Math.min(selectPosition.y,mousePosition.y));
+            upper.set(Math.max(selectPosition.x,mousePosition.x),Math.max(selectPosition.y,mousePosition.y));
+            selectionRectangle.set(lower.x,lower.y,upper.x-lower.x,upper.y-lower.y);
+
+            if (!Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
                 selecting = false;
-
-                lower.set(Math.min(selectPosition.x,mousePosition.x),Math.min(selectPosition.y,mousePosition.y));
-                upper.set(Math.max(selectPosition.x,mousePosition.x),Math.max(selectPosition.y,mousePosition.y));
-
                 if (lower.dst2(upper) < 1) {
                     lower.sub(0.5f,0.5f);
                     upper.add(0.5f,0.5f);
@@ -103,5 +107,13 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
             }
         }
         return true;
+    }
+
+    public Rectangle getSelectionRectangle() {
+        return selectionRectangle;
+    }
+
+    public boolean isSelecting() {
+        return selecting;
     }
 }

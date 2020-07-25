@@ -15,6 +15,7 @@ public class ArriveSteerer extends CollisionAvoidanceSteererBase {
     float deadlockDetectionStartTime;
     float collisionDuration;
     private static final float DEADLOCK_TIME = 0.5f;
+    private static final float MAX_NO_COLLISION_TIME = DEADLOCK_TIME + .5f;
 
     public ArriveSteerer(final Steerable<Vector2> body, SteeringLocation target) {
         super(body);
@@ -35,7 +36,8 @@ public class ArriveSteerer extends CollisionAvoidanceSteererBase {
 
         if (prioritySteering.getSelectedBehaviorIndex() == 0) {
             //Collision Avoidance Management
-            if (distanceToTargetSquared < 0.2f) {
+            float pr = proximity.getRadius() * 1.5f;
+            if (distanceToTargetSquared < pr * pr) {
                 // Disable collision avoidance when nearing the target position as
                 // it will likely prevent us from reaching the target.
                 collisionAvoidanceSB.setEnabled(false);
@@ -57,8 +59,18 @@ public class ArriveSteerer extends CollisionAvoidanceSteererBase {
             return true;
         }
 
+        // Check if we have reached the target position
+        if (steering.isZero() && distanceToTargetSquared < arriveSB.getArrivalTolerance() * arriveSB.getArrivalTolerance()) {
+            return false;
+        }
 
-        return distanceToTargetSquared > 0.001f;
+        // Check if collision avoidance must be re-enabled
+        if (deadlockDetection && !collisionAvoidanceSB.isEnabled() && GdxAI.getTimepiece().getTime() - deadlockDetectionStartTime > MAX_NO_COLLISION_TIME) {
+            collisionAvoidanceSB.setEnabled(true);
+            deadlockDetection = false;
+        }
+
+        return true;
     }
 
     @Override
