@@ -32,8 +32,8 @@ public class GameScreen implements Screen {
 
         world = new World(new Vector2(), true);
 
-        RenderSystem renderSystem = new RenderSystem(batch,960,540);
-        ControlSystem controlSystem = new ControlSystem(renderSystem.getCamera(),world);
+        RenderSystem renderSystem = new RenderSystem(batch,1920,1080);
+        ControlSystem controlSystem = new ControlSystem(renderSystem.getViewport(),world);
 
         engine = new PooledEngine();
         engine.addSystem(controlSystem);

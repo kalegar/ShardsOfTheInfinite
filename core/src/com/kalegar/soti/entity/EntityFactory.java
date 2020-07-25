@@ -43,7 +43,7 @@ public class EntityFactory {
         transform.position.x = pos.x;
         transform.position.y = pos.y;
 
-        physics.body = Utils.createDynamicBody(entity, pos, world, new FighterPhysicsSettings());
+        physics.body = Utils.createDynamicBody(entity, pos, new FighterPhysicsSettings());
 
         steering.body = physics.body;
 

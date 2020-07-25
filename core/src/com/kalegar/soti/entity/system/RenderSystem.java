@@ -111,12 +111,16 @@ public class RenderSystem extends SortedIteratingSystem {
         //Draw selection rectangle
         ControlSystem controlSystem = getEngine().getSystem(ControlSystem.class);
 
+        shapeRenderer.setProjectionMatrix(camera.combined);
+
         if (controlSystem.isSelecting()) {
             shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
             Rectangle rect = controlSystem.getSelectionRectangle();
             shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
             shapeRenderer.end();
         }
+
+        controlSystem.draw(shapeRenderer);
 
     }
 
@@ -131,6 +135,10 @@ public class RenderSystem extends SortedIteratingSystem {
 
     public OrthographicCamera getCamera() {
         return camera;
+    }
+
+    public Viewport getViewport() {
+        return viewport;
     }
 
     private static class ZComparator implements Comparator<Entity> {

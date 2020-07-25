@@ -1,9 +1,11 @@
 package com.kalegar.soti.entity.component;
 
 import com.badlogic.ashley.core.Component;
+import com.badlogic.gdx.ai.fma.FormationMember;
 import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.utils.Location;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.utils.Pool;
@@ -11,7 +13,7 @@ import com.kalegar.soti.entity.steering.SteeringLocation;
 import com.kalegar.soti.util.Steerer;
 import com.kalegar.soti.util.Utils;
 
-public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Poolable{
+public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Poolable, FormationMember<Vector2> {
 
     public Body body;
 
@@ -27,9 +29,12 @@ public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Po
     public boolean independentFacing = false;
     public boolean wasSteering;
 
+    public Location<Vector2> targetLocation = new SteeringLocation();
+
     @Override
     public void reset() {
         wasSteering = false;
+        targetLocation.getPosition().setZero();
     }
 
     public boolean isIndependentFacing() {
@@ -41,7 +46,6 @@ public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Po
     }
 
     public void update(float delta) {
-
         if (steerer != null) {
             if (steerer.calculateSteering(steeringOutput)) {
                 if (!wasSteering) {
@@ -70,7 +74,7 @@ public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Po
         } else {
             Vector2 linVel = getLinearVelocity();
             if (!linVel.isZero(getZeroLinearSpeedThreshold())) {
-                float newOrientation = Utils.lerp(body.getAngle(),vectorToAngle(linVel),0.1f);
+                float newOrientation = MathUtils.lerpAngle(body.getAngle(),vectorToAngle(linVel),0.1f);
                 //body.setAngularVelocity((newOrientation - getAngularVelocity()) * deltaTime * maxAngularAcceleration);
                 body.setTransform(body.getPosition(),newOrientation);
             }
@@ -220,5 +224,10 @@ public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Po
     @Override
     public Location<Vector2> newLocation() {
         return new SteeringLocation();
+    }
+
+    @Override
+    public Location<Vector2> getTargetLocation() {
+        return targetLocation;
     }
 }

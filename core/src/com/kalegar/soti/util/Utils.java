@@ -9,6 +9,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Shape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.kalegar.soti.physics.PhysicsFixtureUserData;
+import com.kalegar.soti.screen.GameScreen;
 
 public class Utils {
 
@@ -43,13 +44,17 @@ public class Utils {
      * @param settings
      * @return
      */
-    public static Body createDynamicBody(Entity entity, Vector2 position, World world, PhysicsBodySettings settings) {
+    public static Body createDynamicBody(Object entity, Vector2 position, PhysicsBodySettings settings) {
+        return createDynamicBody(entity,position,settings, PhysicsFixtureUserData.FixtureUserDataType.ENTITY);
+    }
+
+    public static Body createDynamicBody(Object entity, Vector2 position, PhysicsBodySettings settings, PhysicsFixtureUserData.FixtureUserDataType type) {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.position.set(position.x, position.y);
         bodyDef.bullet = settings.isBullet();
 
-        Body body = world.createBody(bodyDef);
+        Body body = GameScreen.getWorld().createBody(bodyDef);
         body.setUserData(entity);
 
         FixtureDef fixtureDef = new FixtureDef();
@@ -60,7 +65,7 @@ public class Utils {
         fixtureDef.isSensor = settings.isSensor();
 
         Fixture fixture = body.createFixture(fixtureDef);
-        fixture.setUserData(new PhysicsFixtureUserData(PhysicsFixtureUserData.FixtureUserDataType.ENTITY));
+        fixture.setUserData(new PhysicsFixtureUserData(type));
 
         body.setLinearDamping(settings.getLinearDamping());
         body.setAngularDamping(settings.getAngularDamping());
