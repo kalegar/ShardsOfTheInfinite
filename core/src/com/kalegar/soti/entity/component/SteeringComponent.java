@@ -13,7 +13,7 @@ import com.kalegar.soti.entity.steering.SteeringLocation;
 import com.kalegar.soti.util.Steerer;
 import com.kalegar.soti.util.Utils;
 
-public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Poolable, FormationMember<Vector2> {
+public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Poolable{
 
     public Body body;
 
@@ -28,13 +28,11 @@ public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Po
     public boolean tagged = false;
     public boolean independentFacing = false;
     public boolean wasSteering;
-
-    public Location<Vector2> targetLocation = new SteeringLocation();
+    public boolean isSteering;
 
     @Override
     public void reset() {
         wasSteering = false;
-        targetLocation.getPosition().setZero();
     }
 
     public boolean isIndependentFacing() {
@@ -47,7 +45,8 @@ public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Po
 
     public void update(float delta) {
         if (steerer != null) {
-            if (steerer.calculateSteering(steeringOutput)) {
+            isSteering = steerer.calculateSteering(steeringOutput);
+            if (isSteering) {
                 if (!wasSteering) {
                     startSteering();
                 }
@@ -114,7 +113,7 @@ public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Po
             clearLinearVelocity = steerer.stopSteering();
         }
 
-        steerer = null;
+        //steerer = null;
         steeringOutput.setZero();
         if (clearLinearVelocity) {
             body.setLinearVelocity(Vector2.Zero);
@@ -224,10 +223,5 @@ public class SteeringComponent implements Steerable<Vector2>, Component, Pool.Po
     @Override
     public Location<Vector2> newLocation() {
         return new SteeringLocation();
-    }
-
-    @Override
-    public Location<Vector2> getTargetLocation() {
-        return targetLocation;
     }
 }

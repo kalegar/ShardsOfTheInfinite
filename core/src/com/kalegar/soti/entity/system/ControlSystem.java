@@ -1,9 +1,12 @@
 package com.kalegar.soti.entity.system;
 
+import com.badlogic.ashley.core.ComponentMapper;
+import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.core.PooledEngine;
 import com.badlogic.ashley.systems.IteratingSystem;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ai.fma.Formation;
@@ -20,18 +23,20 @@ import com.badlogic.gdx.physics.box2d.QueryCallback;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.kalegar.soti.entity.component.ComponentMappers;
+import com.kalegar.soti.entity.component.FormationComponent;
+import com.kalegar.soti.entity.component.FormationMemberComponent;
+import com.kalegar.soti.entity.component.PhysicsComponent;
 import com.kalegar.soti.entity.component.SelectedComponent;
 import com.kalegar.soti.entity.component.SteeringComponent;
 import com.kalegar.soti.entity.component.TeamComponent;
+import com.kalegar.soti.entity.component.TransformComponent;
 import com.kalegar.soti.entity.steering.SteeringLocation;
-import com.kalegar.soti.formation.FormationSteerer;
 import com.kalegar.soti.formation.VeeFormationPattern;
 import com.kalegar.soti.physics.PhysicsFixtureUserData;
+import com.kalegar.soti.screen.GameScreen;
 import com.kalegar.soti.steerers.ArriveSteerer;
+import com.kalegar.soti.steerers.CollisionAvoidanceSteererBase;
 import com.kalegar.soti.util.Constants;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ControlSystem extends IteratingSystem implements QueryCallback {
 
@@ -43,7 +48,11 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
     private Vector2 mousePosition = new Vector2();
     private boolean selecting = false;
     private Rectangle selectionRectangle;
-    private FormationSteerer formation;
+
+    private ImmutableArray<Entity> formations;
+    private Entity formation;
+
+    private Vector2 averagePosition = new Vector2();
 
     public ControlSystem(Viewport viewport, World world) {
         super(Family.all(SelectedComponent.class, TeamComponent.class, SteeringComponent.class).get());
@@ -54,11 +63,47 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
     }
 
     @Override
-    public void update(float deltaTime) {
-        if (formation != null) {
-            formation.update();
-        }
+    public void addedToEngine(Engine engine) {
+        super.addedToEngine(engine);
+        formations = getEngine().getEntitiesFor(Family.all(FormationComponent.class, SteeringComponent.class, PhysicsComponent.class).get());
+    }
 
+    @Override
+    public void update(float deltaTime) {
+        // Clear current formation
+        formation = null;
+        // If we have some entities selected
+        if (getEntities().size() > 0) {
+            if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
+                // Create a new formation
+                VeeFormationPattern pattern = new VeeFormationPattern(1.5f);
+                //TODO: Create formation entity at average location of selected units
+                updateAveragePosition();
+                Vector2 offset = mousePosition.cpy().scl(1/Constants.PPM).sub(averagePosition).scl(0.2f).limit(10f);
+                formation = GameScreen.getEntityFactory().getFormation(averagePosition.add(offset));
+
+                SteeringComponent steering = ComponentMappers.steering.get(formation);
+                steering.steerer = new ArriveSteerer(steering,new SteeringLocation(mousePosition.cpy().scl(1 / Constants.PPM)));
+                ((CollisionAvoidanceSteererBase) steering.steerer).setCollisionAvoidanceEnabled(false);
+
+                FormationComponent fc = ComponentMappers.formation.get(formation);
+                fc.init(pattern,steering);
+                fc.formation.updateSlots();
+                fc.formation.getAnchorPoint().setOrientation(fc.formation.getAnchorPoint().vectorToAngle(offset));
+            }
+        }
+        // Update formations
+        for (Entity formation : formations) {
+            FormationComponent fc = ComponentMappers.formation.get(formation);
+            fc.formation.updateSlots();
+            if (fc.formation.getSlotAssignmentCount() == 0) {
+                getEngine().removeEntity(formation);
+            }
+            SteeringComponent sc = ComponentMappers.steering.get(formation);
+            if (!sc.isSteering) {
+                getEngine().removeEntity(formation);
+            }
+        }
         super.update(deltaTime);
         Vector2 pos = new Vector2(Gdx.input.getX(), Gdx.input.getY());
         Vector2 mPos = viewport.unproject(pos);
@@ -90,25 +135,6 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
                 );
             }
         }
-        // If we have some entities selected
-        if (getEntities().size() > 0) {
-            if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
-                if (formation == null) {
-                    VeeFormationPattern pattern = new VeeFormationPattern(1.5f);
-                    //DefensiveCircleFormationPattern<Vector2> pattern = new DefensiveCircleFormationPattern<>(1f);
-                    formation = new FormationSteerer(pattern);
-                    Arrive<Vector2> arrive = new Arrive<>(formation);
-                    arrive.setTarget(new SteeringLocation(mousePosition.cpy().scl(1 / Constants.PPM)));
-                    arrive.setDecelerationRadius(6f).setArrivalTolerance(0.5f).setTimeToTarget(1);
-                    formation.setSteeringBehavior(arrive);
-                }else{
-                    Arrive<Vector2> arrive = new Arrive<>(formation);
-                    arrive.setTarget(new SteeringLocation(mousePosition.cpy().scl(1 / Constants.PPM)));
-                    arrive.setDecelerationRadius(6f).setArrivalTolerance(0.5f).setTimeToTarget(1);
-                    formation.setSteeringBehavior(arrive);
-                }
-            }
-        }
     }
 
     @Override
@@ -121,11 +147,16 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
         }
         if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT) && formation != null) {
             SteeringComponent steering = ComponentMappers.steering.get(entity);
+            FormationMemberComponent formationMember = ComponentMappers.formationMember.get(entity);
+            if (formationMember.formation != null) {
+                formationMember.formation.removeMember(formationMember);
+            }
 
-            steering.steerer = new ArriveSteerer(steering,steering.targetLocation);
-            formation.getFormation().removeMember(steering);
-            formation.getFormation().addMember(steering);
-            //steering.steerer = new ArriveSteerer(steering,new SteeringLocation(mousePosition.cpy().scl(1/Constants.PPM)));
+            FormationComponent currentFormation = ComponentMappers.formation.get(formation);
+            formationMember.formation = currentFormation.formation;
+            currentFormation.formation.addMember(formationMember);
+
+            steering.steerer = new ArriveSteerer(steering,formationMember.targetLocation);
 
         }
     }
@@ -152,9 +183,11 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
     }
 
     private void deselectEntity(Entity entity) {
-        if (formation != null) {
-            formation.getFormation().removeMember( ComponentMappers.steering.get(entity));
-        }
+        FormationMemberComponent fmc = ComponentMappers.formationMember.get(entity);
+        /*if (fmc.formation != null) {
+            FormationComponent formation = ComponentMappers.formation.get(fmc.formation);
+            formation.formation.removeMember(fmc);
+        }*/
         entity.remove(SelectedComponent.class);
     }
 
@@ -167,19 +200,29 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
     }
 
     public void draw(ShapeRenderer shapeRenderer) {
-        if (formation != null) {
+        for (Entity entity : formations) {
+            FormationComponent formation = ComponentMappers.formation.get(entity);
             SteeringLocation temp = new SteeringLocation();
-            Vector2 anchor = formation.getFormation().getAnchorPoint().getPosition();
+            Vector2 anchor = formation.formation.getAnchorPoint().getPosition();
             shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-            for (Entity entity : getEntities()) {
-                SteeringComponent steer = ComponentMappers.steering.get(entity);
-                shapeRenderer.circle((steer.getTargetLocation().getPosition().x) * Constants.PPM,(steer.getTargetLocation().getPosition().y) * Constants.PPM,1);
+            for (Entity selected : getEntities()) {
+                FormationMemberComponent formationMember = ComponentMappers.formationMember.get(selected);
+                shapeRenderer.circle((formationMember.getTargetLocation().getPosition().x) * Constants.PPM,(formationMember.getTargetLocation().getPosition().y) * Constants.PPM,1);
             }
             Vector2 dir = new Vector2();
-            temp.angleToVector(dir,formation.getFormation().getAnchorPoint().getOrientation());
+            temp.angleToVector(dir,formation.formation.getAnchorPoint().getOrientation());
             shapeRenderer.line(anchor.cpy().scl(Constants.PPM),anchor.cpy().add(dir).scl(Constants.PPM));
             shapeRenderer.end();
 
         }
+    }
+
+    private void updateAveragePosition() {
+        averagePosition.setZero();
+        for (Entity entity : getEntities()) {
+            TransformComponent tc = ComponentMappers.transform.get(entity);
+            averagePosition.add(tc.position.x,tc.position.y);
+        }
+        averagePosition.scl(1/(float)getEntities().size());
     }
 }

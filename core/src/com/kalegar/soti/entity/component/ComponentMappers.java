@@ -9,4 +9,6 @@ public class ComponentMappers {
     public static final ComponentMapper<SteeringComponent> steering = ComponentMapper.getFor(SteeringComponent.class);
     public static final ComponentMapper<SelectedComponent> select = ComponentMapper.getFor(SelectedComponent.class);
     public static final ComponentMapper<TeamComponent> team = ComponentMapper.getFor(TeamComponent.class);
+    public static final ComponentMapper<FormationComponent> formation = ComponentMapper.getFor(FormationComponent.class);
+    public static final ComponentMapper<FormationMemberComponent> formationMember = ComponentMapper.getFor(FormationMemberComponent.class);
 }

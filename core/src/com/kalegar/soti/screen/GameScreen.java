@@ -23,7 +23,7 @@ public class GameScreen implements Screen {
     private SpriteBatch batch;
     private static World world;
 
-    private EntityFactory entityFactory;
+    private static EntityFactory entityFactory;
 
     public GameScreen(final ShardsOfTheInfinite game) {
         this.game = game;
@@ -93,5 +93,9 @@ public class GameScreen implements Screen {
 
     public static World getWorld() {
         return world;
+    }
+
+    public static EntityFactory getEntityFactory() {
+        return entityFactory;
     }
 }
