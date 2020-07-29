@@ -77,7 +77,6 @@ public class ControlSystem extends IteratingSystem implements QueryCallback {
             if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
                 // Create a new formation
                 VeeFormationPattern pattern = new VeeFormationPattern(1.5f);
-                //TODO: Create formation entity at average location of selected units
                 updateAveragePosition();
                 Vector2 offset = mousePosition.cpy().scl(1/Constants.PPM).sub(averagePosition).scl(0.2f).limit(10f);
                 formation = GameScreen.getEntityFactory().getFormation(averagePosition.add(offset));

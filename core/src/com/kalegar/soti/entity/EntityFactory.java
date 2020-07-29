@@ -11,6 +11,7 @@ import com.kalegar.soti.entity.component.FormationComponent;
 import com.kalegar.soti.entity.component.FormationMemberComponent;
 import com.kalegar.soti.entity.component.PhysicsComponent;
 import com.kalegar.soti.entity.component.RenderComponent;
+import com.kalegar.soti.entity.component.StationComponent;
 import com.kalegar.soti.entity.component.SteeringComponent;
 import com.kalegar.soti.entity.component.TeamComponent;
 import com.kalegar.soti.entity.component.TransformComponent;
@@ -26,6 +27,21 @@ public class EntityFactory {
     public EntityFactory(PooledEngine engine, World world) {
         this.engine = engine;
         this.world = world;
+    }
+
+    public Entity getStation(Vector2 worldPosition) {
+        Entity entity = engine.createEntity();
+
+        TransformComponent transform = engine.createComponent(TransformComponent.class);
+        StationComponent station = engine.createComponent(StationComponent.class);
+
+        transform.position.set(worldPosition,0);
+
+        entity.add(transform);
+        entity.add(station);
+
+        engine.addEntity(entity);
+        return entity;
     }
 
     public Entity getFormation(Vector2 worldPosition) {

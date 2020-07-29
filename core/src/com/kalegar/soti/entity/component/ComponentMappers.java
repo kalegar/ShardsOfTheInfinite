@@ -11,4 +11,6 @@ public class ComponentMappers {
     public static final ComponentMapper<TeamComponent> team = ComponentMapper.getFor(TeamComponent.class);
     public static final ComponentMapper<FormationComponent> formation = ComponentMapper.getFor(FormationComponent.class);
     public static final ComponentMapper<FormationMemberComponent> formationMember = ComponentMapper.getFor(FormationMemberComponent.class);
+    public static final ComponentMapper<RoomComponent> room = ComponentMapper.getFor(RoomComponent.class);
+    public static final ComponentMapper<StationComponent> station = ComponentMapper.getFor(StationComponent.class);
 }

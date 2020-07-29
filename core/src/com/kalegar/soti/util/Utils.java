@@ -87,4 +87,8 @@ public class Utils {
         return (lower + fraction * (upper - lower));
     }
 
+    public static float manhattenDistance(float x1, float y1, float x2, float y2) {
+        return Math.abs(x2 - x1) + Math.abs(y2 - y1);
+    }
+
 }

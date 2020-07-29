@@ -12,4 +12,8 @@ public class Constants {
     public static final float PHYSICS_TIME_STEP = 1/60f;
     public static final int VELOCITY_ITERATIONS = 6;
     public static final int POSITION_ITERATIONS = 2;
+
+    //Tile Constants
+    public static final float TILE_WIDTH = 32;
+    public static final float TILE_HEIGHT = 32;
 }
